@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-api
+  namespace: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-api
+  template:
+    metadata:
+      labels:
+        app: flask-api
+    spec:
+      containers:
+      - name: flask-api
+        image: josevivo/flask-api:v1
+        ports:
+        - containerPort: 5000  # Cambia esto según tu aplicación
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-api-service
+  namespace: api
+spec:
+  selector:
+    app: flask-api
+  ports:
+    - protocol: TCP
+      port: 80         # Puerto del servicio
+      targetPort: 5000 # Puerto en el contenedor
+      nodePort: 30080  # Puerto de acceso desde el nodo
+  type: NodePort
+
