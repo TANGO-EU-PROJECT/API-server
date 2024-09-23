@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: flask-api
-        image: josevivo/flask-api:v1
+        image: josevivo/my-api:v1
         ports:
         - containerPort: 5000  # Cambia esto según tu aplicación
 
