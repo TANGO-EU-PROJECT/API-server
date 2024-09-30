@@ -1,0 +1,10 @@
+INPUT
+GET /<URI-service>/resource/<resource-id> + queryParameters
+
+OUTPUT
+- Succes
+	JsonBody with data
+
+- Error
+	Error message
+
