@@ -7,3 +7,4 @@ Pasos para levantar API en kubernetes.
            -Si es en local establecer un nodeport junto con el targeport.
   6. Aplicar el deploy
 
+Ejemplo de solicitud: http://192.168.161.135:30080
