@@ -32,6 +32,31 @@ def get_resource(resource_type):
         return jsonify({'error': 'Resource not found'}), 404
 
 
+@app.route('/resource', methods=['POST'])
+@app.route('/resource', methods=['POST'])
+def add_resource():
+    try:
+        data = request.get_json()  # Intenta obtener el JSON
+        if not data:
+            return jsonify({'error': 'Bad request: No JSON body provided'}), 400
+    except Exception as e:
+        return jsonify({'error': 'Bad request: Invalid JSON format', 'message': str(e)}), 400
+
+
+    # Iterar sobre los elementos en el JSON para agregarlos a resources
+    for resource_type, resource_data in data.items():
+        # Validación básica de nombres de recursos
+        if not re.match("^[a-zA-Z0-9_]+$", resource_type):
+            return jsonify({'error': f'Bad request: Invalid resource type {resource_type}'}), 400
+        
+        # Validación del formato de los valores del recurso
+        if 'value' not in resource_data or 'unit' not in resource_data:
+            return jsonify({'error': 'Missing value or unit in resource data'}), 400
+
+        # Añadir el nuevo recurso o actualizar uno existente
+        resources[resource_type] = {'value': resource_data['value'], 'unit': resource_data['unit']}
+    
+    return jsonify({'response': resources}), 201
 
 # Ejecutar la app
 if __name__ == '__main__':
