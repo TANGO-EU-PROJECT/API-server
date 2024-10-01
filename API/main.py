@@ -15,6 +15,12 @@ resources = {
 @app.route('/')
 def index():
     return "Bienvenido a la API de recursos!"
+    
+    
+# Endpoint para obtener la lista de todos los recursos
+@app.route('/resource', methods=['GET'])
+def get_resources():
+    return jsonify({'response': resources}), 200
 
 @app.route('/resource/<resource_type>', methods=['GET'])
 def get_resource(resource_type):
@@ -32,31 +38,46 @@ def get_resource(resource_type):
         return jsonify({'error': 'Resource not found'}), 404
 
 
-@app.route('/resource', methods=['POST'])
+# Ruta para agregar un recurso, aceptando ambos métodos
 @app.route('/resource', methods=['POST'])
 def add_resource():
-    try:
-        data = request.get_json()  # Intenta obtener el JSON
-        if not data:
-            return jsonify({'error': 'Bad request: No JSON body provided'}), 400
-    except Exception as e:
-        return jsonify({'error': 'Bad request: Invalid JSON format', 'message': str(e)}), 400
+    # Intentar obtener parámetros del cuerpo de la solicitud
+    if request.is_json:
+        body = request.get_json()
 
-
-    # Iterar sobre los elementos en el JSON para agregarlos a resources
-    for resource_type, resource_data in data.items():
-        # Validación básica de nombres de recursos
-        if not re.match("^[a-zA-Z0-9_]+$", resource_type):
-            return jsonify({'error': f'Bad request: Invalid resource type {resource_type}'}), 400
+        # Obtener el tipo de recurso y sus propiedades
+        if len(body) != 1:
+            return jsonify({'error': 'JSON must contain a single resource'}), 400
         
-        # Validación del formato de los valores del recurso
-        if 'value' not in resource_data or 'unit' not in resource_data:
-            return jsonify({'error': 'Missing value or unit in resource data'}), 400
+        resource_type, resource_info = next(iter(body.items()))
+        value = resource_info.get('value')
+        unit = resource_info.get('unit')
+        
+    else:
+        # Obtener parámetros de la URL si no hay cuerpo JSON
+        resource_type = request.args.get('resource_type')
+        value = request.args.get('value')
+        unit = request.args.get('unit')
 
-        # Añadir el nuevo recurso o actualizar uno existente
-        resources[resource_type] = {'value': resource_data['value'], 'unit': resource_data['unit']}
+    # Verificación de la existencia de todos los parámetros requeridos
+    if not resource_type or value is None or not unit:
+        return jsonify({'error': 'Missing required parameters'}), 400
+
+    # Validación básica del nombre del recurso
+    if not re.match("^[a-zA-Z0-9_]+$", resource_type):
+        return jsonify({'error': 'Bad request: Invalid resource type'}), 400
+
+    # Validación del valor (convertir a float si es posible)
+    try:
+        value = float(value)
+    except ValueError:
+        return jsonify({'error': 'Invalid value, must be a number'}), 400
+
+    # Agregar el nuevo recurso a 'resources'
+    resources[resource_type] = {'value': value, 'unit': unit}
+
+    return jsonify({'response': f'Resource {resource_type} added successfully!', 'resource': resources[resource_type]}), 201
     
-    return jsonify({'response': resources}), 201
 
 # Ejecutar la app
 if __name__ == '__main__':

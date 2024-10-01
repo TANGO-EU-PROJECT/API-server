@@ -16,3 +16,10 @@ Ejemplo de body POST:
 	- {"co2_concentration": {"value": 415, "unit": "ppm"}}
 	- {"water_ph": {"value": 7.2, "unit": "pH"}}
 	- {"rain_intensity": {"value": 15, "unit": "mm/h"}}
+	
+Ejemplo de POST con query parameters:
+	- http://127.0.0.1:5000/resource?resource_type=light_intensity&value=300&unit=lux
+	- http://127.0.0.1:5000/resource?resource_type=wind_speed&value=10&unit=m/s
+	- http://127.0.0.1:5000/resource?resource_type=rain_intensity&value=15&unit=mm/h
+
+URL del nodo: http://192.168.161.135:30080
