@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    namespace: ips-testing1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}
+          image: {{ .Values.api-server.image }}:{{ .Values.api-server.imageTag }}
+          imagePullPolicy: {{ .Values.api-server.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.api-server.containerPort }}
+      imagePullSecrets:
+        - name: harborsecretapi
