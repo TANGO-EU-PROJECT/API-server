@@ -1,61 +1,63 @@
 pipeline {
-     agent {
+    agent {
         node {
             label 'Agent01'
         }
     }
 
-        tools {
-          python 'python 3.9'
+    tools {
+        python 'python 3.9'
     }
+
     environment {
-           APP_NAME = "api"
+        APP_NAME = "api"
         DOCKER_IMAGE = 'api-server' 
-      ARTIFACTORY_SERVER = "harbor.tango.rid-intrasoft.eu"
-      ARTIFACTORY_DOCKER_REGISTRY = "harbor.tango.rid-intrasoft.eu/api-server/"
-      BRANCH_NAME = "main"
-      DOCKER_IMAGE_TAG = "$APP_NAME:R${env.BUILD_ID}"
-      TAG = 'latest'    
-      KUBERNETES_NAMESPACE = 'ips-testing1'
-          RELEASE_NAME = 'api-server'
+        ARTIFACTORY_SERVER = "harbor.tango.rid-intrasoft.eu"
+        ARTIFACTORY_DOCKER_REGISTRY = "harbor.tango.rid-intrasoft.eu/api-server/"
+        BRANCH_NAME = "main"
+        DOCKER_IMAGE_TAG = "${APP_NAME}:R${env.BUILD_ID}"
+        TAG = 'latest'    
+        KUBERNETES_NAMESPACE = 'ips-testing1'
+        RELEASE_NAME = 'api-server'
     }
-   stages {
-              stage('Build image') { // build and tag docker image
+
+    stages {
+        stage('Build image') { // build and tag docker image
             steps {
-                   dir('demo') {
-                echo 'Starting to build docker image'
-                script {
-                    def dockerImage = docker.build(ARTIFACTORY_DOCKER_REGISTRY + DOCKER_IMAGE_TAG) 
+                dir('demo') {
+                    echo 'Starting to build docker image'
+                    script {
+                        def dockerImage = docker.build("${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG}") 
+                    }
                 }
             }
-          }
         }
 
-      stage("Push_Image"){
+        stage("Push_Image") {
             steps {
-                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'harbor-jenkins-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]){
+                withCredentials([usernamePassword(credentialsId: 'harbor-jenkins-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     echo "***** Push Docker Image *****"
                     sh 'docker login ${ARTIFACTORY_SERVER} -u ${USERNAME} -p ${PASSWORD}'
                     sh 'docker image push ${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG}'
-                sh 'docker tag ${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG} ${ARTIFACTORY_DOCKER_REGISTRY}${APP_NAME}:latest'
-                sh 'docker image push ${ARTIFACTORY_DOCKER_REGISTRY}${APP_NAME}:latest'
+                    sh 'docker tag ${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG} ${ARTIFACTORY_DOCKER_REGISTRY}${APP_NAME}:latest'
+                    sh 'docker image push ${ARTIFACTORY_DOCKER_REGISTRY}${APP_NAME}:latest'
                 }
             }
         }
-               stage('Docker Remove Image locally') {
-        steps {
-                sh 'docker rmi "$ARTIFACTORY_DOCKER_REGISTRY$DOCKER_IMAGE_TAG"'
-            sh 'docker rmi "$ARTIFACTORY_DOCKER_REGISTRY$APP_NAME:latest"'
+
+        stage('Docker Remove Image locally') {
+            steps {
+                sh 'docker rmi "${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG}"'
+                sh 'docker rmi "${ARTIFACTORY_DOCKER_REGISTRY}${APP_NAME}:latest"'
             }
         }
-      
-             stage("Deployment"){
-                steps {
-               withKubeConfig([credentialsId: 'K8s-config-file', serverUrl: 'https://kubernetes.tango.rid-intrasoft.eu:6443', namespace: 'ips-testing1']) {
-                  
+
+        stage("Deployment") {
+            steps {
+                withKubeConfig([credentialsId: 'K8s-config-file', serverUrl: 'https://kubernetes.tango.rid-intrasoft.eu:6443', namespace: 'ips-testing1']) {
                     sh 'kubectl get pods -n ${KUBERNETES_NAMESPACE}'
-          }
+                }
             }
-   }
-}
+        }
+    }
 }
