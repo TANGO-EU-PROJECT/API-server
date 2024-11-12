@@ -5,10 +5,6 @@ pipeline {
         }
     }
 
-    tools {
-        python 'python:3.9-slim'
-    }
-
     environment {
         APP_NAME = "api"
         DOCKER_IMAGE = 'api-server' 
