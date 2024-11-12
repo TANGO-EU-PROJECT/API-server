@@ -20,7 +20,7 @@ pipeline {
     stages {
         stage('Build image') { // build and tag docker image
             steps {
-                dir('demo') {
+                dir('API') {
                     echo 'Starting to build docker image'
                     script {
                         def dockerImage = docker.build("${ARTIFACTORY_DOCKER_REGISTRY}${DOCKER_IMAGE_TAG}") 
