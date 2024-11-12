@@ -6,7 +6,7 @@ pipeline {
     }
 
     tools {
-        python 'python 3.9'
+        python 'python:3.9-slim'
     }
 
     environment {
