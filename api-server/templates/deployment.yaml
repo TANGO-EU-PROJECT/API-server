@@ -22,7 +22,7 @@ spec:
           ports:
             - containerPort: {{ .Values.apiserver.containerPort }}
       imagePullSecrets:
-        - name: {{ .Values.apiserver.imagePullSecrets | first }}
+        {{- toYaml .Values.apiserver.imagePullSecrets | nindent 8 }}
 
 
 

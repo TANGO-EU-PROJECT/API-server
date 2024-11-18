@@ -3,12 +3,13 @@ apiserver:
   imageTag: latest
   pullPolicy: Always
   namespace: ips-testing1
-  
+
   imagePullSecrets:
     - name: harborsecretapi2
 
   containerPort: 5000
-      
+
 ingress:
   host: example.com
   tlsSecret: my-tls-secret
+
