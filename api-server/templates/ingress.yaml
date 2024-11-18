@@ -7,7 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /resource/$2 
 spec:
   rules:
-    - host: api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /resource(/|$)(.*)
@@ -17,3 +17,8 @@ spec:
                 name: api-server-service
                 port:
                   number: 80
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tlsSecret }}
+

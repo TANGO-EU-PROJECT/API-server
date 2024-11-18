@@ -1,11 +1,11 @@
-api-server:
-  image: harbor.tango.rid-intrasoft.eu/api-server
+apiserver:
+  image: harbor.tango.rid-intrasoft.eu/api-server/api
   imageTag: latest
   pullPolicy: Always
   namespace: ips-testing1
   
   imagePullSecrets:
-    - name: harborsecretapi
+    - name: harborsecretapi2
 
   containerPort: 5000
       

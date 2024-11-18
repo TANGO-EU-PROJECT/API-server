@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}
   labels:
     app: {{ .Release.Name }}
-    namespace: ips-testing1
+    namespace: {{ .Values.apiserver.namespace }}
 spec:
   replicas: 1
   selector:
@@ -17,9 +17,12 @@ spec:
     spec:
       containers:
         - name: {{ .Release.Name }}
-          image: {{ .Values.api-server.image }}:{{ .Values.api-server.imageTag }}
-          imagePullPolicy: {{ .Values.api-server.pullPolicy }}
+          image: {{ .Values.apiserver.image }}:{{ .Values.apiserver.imageTag }}
+          imagePullPolicy: {{ .Values.apiserver.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.api-server.containerPort }}
+            - containerPort: {{ .Values.apiserver.containerPort }}
       imagePullSecrets:
-        - name: harborsecretapi
+        - name: {{ .Values.apiserver.imagePullSecrets | first }}
+
+
+
