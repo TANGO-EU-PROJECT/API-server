@@ -5,7 +5,7 @@ apiserver:
   namespace: ips-testing1
 
   imagePullSecrets:
-    - name: harborsecretapi2
+    - name: regcred
 
   containerPort: 5000
 
