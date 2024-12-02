@@ -48,122 +48,116 @@ resources = {
     }
 }
 
+# Mapa de acceso (ID, ROLE, ACTION -> Resources)
+access_map = {
+    ("user123", "employee", "GET"): ["/temperature", "/humidity"],
+    ("user456", "leader", "POST"): ["/temperature", "/humidity", "/pressure"]
+}
+
 
 # Ruta de bienvenida
 @app.route('/')
 def index():
     return "Bienvenido a la API de recursos!"
-    
-    
+
+# Verificar acceso basado en el mapa
+def check_access(user_id, role, action, resource):
+    if not user_id or not role:
+        # Si no hay usuario o rol, permitir acceso
+        return True
+    allowed_resources = access_map.get((user_id, role, action), [])
+    return f"/{resource}" in allowed_resources
+
+
+# Endpoint para agregar un nuevo permiso
+@app.route('/add_permission', methods=['POST'])
+def add_permission():
+    try:
+        data = request.json
+        user_id = data['user_id']
+        role = data['role']
+        action = data['action']
+        resources = data['resources']
+
+        # Crear la nueva clave en el access_map
+        key = (user_id, role, action)
+        if key in access_map:
+            # Si la clave ya existe, agregamos los recursos si no están presentes
+            access_map[key].extend([r for r in resources if r not in access_map[key]])
+        else:
+            # Si la clave no existe, la creamos
+            access_map[key] = resources
+        
+        return jsonify({"message": "Permission added successfully"}), 201
+    except KeyError:
+        return jsonify({"error": "Missing required fields"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/access_map', methods=['GET'])
+def get_access_map():
+    # Convertir las claves de las tuplas a cadenas para que sean serializables
+    serializable_map = {}
+    for key, resources in access_map.items():
+        serializable_map[str(key)] = resources
+    return jsonify(serializable_map)
+
 # Endpoint para obtener la lista de todos los recursos
 @app.route('/resource', methods=['GET'])
 def get_resources():
     return jsonify({'response': resources}), 200
 
+# Endpoint para obtener recursos
 @app.route('/resource/<resource_type>', methods=['GET'])
 def get_resource(resource_type):
-    query_parameters = request.args  # Obtiene los parámetros de consulta
+    user_id = request.args.get('id')
+    role = request.args.get('role')
 
-    # Extraer los parámetros de consulta
-    sensor_name = query_parameters.get('sensor')
-    unit = query_parameters.get('unit')
-    min_value = query_parameters.get('min_value', type=float)  # Conversión a float
-    max_value = query_parameters.get('max_value', type=float)  # Conversión a float
-    min_time = query_parameters.get('min_time')  # Puede ser una cadena
-    max_time = query_parameters.get('max_time')  # Puede ser una cadena
+    # Permitir acceso si no se proporcionan id y role
+    if not user_id or not role or check_access(user_id, role, "GET", resource_type):
+        sensors = {k: v for k, v in resources.items() if v['measure'] == resource_type}
+        if not sensors:
+            return jsonify({'response': f'No {resource_type} sensors found'}), 404
+        return jsonify({'response': sensors}), 200
 
-    # Validación del tipo de recurso
-    sensors = {sensor_id: sensor for sensor_id, sensor in resources.items() if sensor['measure'] == resource_type}
+    # Si los parámetros están presentes, pero no autorizados
+    return jsonify({'error': 'Unauthorized access'}), 403
 
-    if not sensors:
-        return jsonify({'response': 'No ' + resource_type + ' sensors found'}), 404
+# Endpoint para agregar un recurso
+@app.route('/resource/<resource_type>', methods=['POST'])
+def add_resource(resource_type):
+    user_id = request.args.get('id')
+    role = request.args.get('role')
 
-    # Aplicar filtros
-    if sensor_name:
-        sensors = {k: v for k, v in sensors.items() if k == sensor_name}
+    # Permitir acceso si no se proporcionan id y role
+    if not user_id or not role or check_access(user_id, role, "POST", resource_type):
+        if not request.is_json:
+            return jsonify({'error': 'Request body must be JSON'}), 400
 
-    if unit:
-        sensors = {k: v for k, v in sensors.items() if v['unit'] == unit}
-
-    if min_value is not None or max_value is not None or min_time or max_time:
-        filtered_sensors = {}
-        for k, v in sensors.items():
-            # Filtrar valores dentro del rango especificado
-            filtered_values = [
-                value for value in v['values']
-                if (min_value is None or value['value'] >= min_value) and
-                   (max_value is None or value['value'] <= max_value) and
-                   (min_time is None or datetime.fromisoformat(value['timestamp'][:-1]) >= datetime.fromisoformat(min_time[:-1])) and
-                   (max_time is None or datetime.fromisoformat(value['timestamp'][:-1]) <= datetime.fromisoformat(max_time[:-1]))
-            ]
-            if filtered_values:
-                filtered_sensors[k] = {
-                    'measure': v['measure'],
-                    'unit': v['unit'],
-                    'values': filtered_values
-                }
-        sensors = filtered_sensors
-
-    if not sensors:
-        return jsonify({'response': 'No matching sensors found'}), 404
-
-    return jsonify({'response': sensors}), 200
-
-
-
-# Ruta para agregar un recurso, aceptando ambos métodos
-@app.route('/resource', methods=['POST'])
-def add_resource():
-    # Si los datos vienen en formato JSON
-    if request.is_json:
         data = request.get_json()
         sensor_name = data.get('sensor')
         unit = data.get('unit')
         measure = data.get('measure')
-        values_param = data.get('values', [])  # Obtener los valores desde JSON como lista
-    else:
-        # Obtener parámetros de la URL (query parameters)
-        sensor_name = request.args.get('sensor')
-        unit = request.args.get('unit')
-        measure = request.args.get('measure')
-        values_param = request.args.getlist('values')  # Obtener múltiples valores como lista desde Query Params
+        values = data.get('values', [])
 
-    # Verificación de la existencia de todos los parámetros requeridos
-    if not sensor_name or not unit or not measure or not values_param:
-        return jsonify({'error': 'Missing required parameters'}), 400
+        if not sensor_name or not unit or not measure or not isinstance(values, list):
+            return jsonify({'error': 'Missing or invalid required parameters'}), 400
 
-    # Validación básica del nombre del sensor
-    if not re.match("^[a-zA-Z0-9_]+$", sensor_name):
-        return jsonify({'error': 'Bad request: Invalid sensor name'}), 400
+        if not re.match("^[a-zA-Z0-9_]+$", sensor_name):
+            return jsonify({'error': 'Invalid sensor name'}), 400
 
-    # Agregar el nuevo recurso a 'resources' si no existe
-    if sensor_name not in resources:
-        resources[sensor_name] = {'measure': measure, 'unit': unit, 'values': []}
+        if sensor_name not in resources:
+            resources[sensor_name] = {'measure': measure, 'unit': unit, 'values': []}
 
-    # Procesar valores desde JSON
-    if isinstance(values_param, list) and isinstance(values_param[0], dict):
-        # Si vienen en formato JSON
-        for val in values_param:
+        for val in values:
             value = val.get('value')
-            timestamp = val.get('timestamp', datetime.utcnow().isoformat() + 'Z')  # Añadir timestamp actual si no está
-            resources[sensor_name]['values'].append({'value': value, 'timestamp': timestamp})
-    else:
-        # Procesar valores desde query parameters
-        for val in values_param:
-            try:
-                if ',' in val:
-                    value_str, timestamp = val.split(',')
-                else:
-                    value_str = val
-                    timestamp = datetime.utcnow().isoformat() + 'Z'  # Si no hay timestamp, agregar la actual
-                value = float(value_str)
-            except ValueError:
-                return jsonify({'error': 'Invalid value format'}), 400
-
+            timestamp = val.get('timestamp', datetime.utcnow().isoformat() + 'Z')
             resources[sensor_name]['values'].append({'value': value, 'timestamp': timestamp})
 
-    return jsonify({'response': f'Sensor {sensor_name} added successfully!', 'sensor': resources[sensor_name]}), 201
-    
+        return jsonify({'response': f'Sensor {sensor_name} added successfully!', 'sensor': resources[sensor_name]}), 201
+
+    # Si los parámetros están presentes, pero no autorizados
+    return jsonify({'error': 'Unauthorized access'}), 403
 
 # Ejecutar la app
 if __name__ == '__main__':

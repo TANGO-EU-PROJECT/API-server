@@ -1,29 +1,41 @@
-# API-PDP
-Pasos para levantar API en kubernetes.
-  1. Crear nuestra API
-  2. Establecer un Dockerfile para construir la imagen: docker build -t <nombre_imagen>:v1 .
-  3. Ejecutar docker: docker run -d -p 5000:5000 <nombre_imagen>
-  4. ---- PARA KUBERNETES ---- Subir la imagen a Dockerhub: docker push <tu_usuario_docker>/<nombre_imagen_flask>:v1
-  5. Crear archivo deployment de kubernetes con su correspondiente pod y servicio
-           -Si es en local establecer un nodeport junto con el targeport.
-  6. Aplicar el deploy
+# API de Recursos
 
+Esta API permite gestionar sensores, recursos y permisos de acceso.
 
-Ejemplos:
-  - GET basica, devuelve todas las temperaturas: http://127.0.0.1:5000/resource/temperature
+## Endpoints
 
-  - GET con todos los queryParameters: http://127.0.0.1:5000/resource/temperature?min_value=20&max_value=23&sensor=sensor2&unit=Celsius&min_time=2024-09-09T12:00:00Z&max_time=2024-09-09T12:01:00Z
-
-  - POST con queryParamaters: http://localhost:5000/resource?sensor=sensor7&unit=Celsius&measure=temperature&values=18.75,2024-10-02T14:00:00Z&values=19
-  
-  - POST con JSONbody: http://127.0.0.1:5000/resource + body:
+### 1. /add_permission - Permite agregar un nuevo permiso para un usuario, especificando su rol y recursos a los que tiene acceso.
+**Método**: POST
+**Body**: JSON
 {
-    "sensor": "sensor8",
-    "measure": "temperature",
+    "user_id": "user789",
+    "role": "admin",
+    "action": "GET",
+    "resources": ["/temperature", "/humidity"]
+}
+
+### 2. /access_map - Devuelve el mapa de acceso actual con los permisos asignados.
+**Método**: GET
+
+### 3. /resource - Devuelve todos los recursos disponibles (sensores).
+**Método**: GET
+
+### 4. /resource/<resource_type> - Devuelve los sensores de un tipo específico (por ejemplo, temperature, humidity, pressure).
+**Método**: GET
+**Permisos**: Se puede añadir usuario y rol en los query parameters para comprobar permisos.
+/resource/temperature?id=user123&role=employee
+
+### 5. /resource/<resource_type> - Agregar un nuevo sensor de un tipo específico, junto con sus valores y unidad de medida.
+**Método**: POST
+**Body**: JSON
+{
+    "sensor": "sensor5",
     "unit": "Celsius",
+    "measure": "temperature",
     "values": [
-        {"value": 21, "timestamp": "2024-09-09T12:34:56Z"},
-        {"value": 23, "timestamp": "2024-09-09T12:35:56Z"},
-        {"value": 25}
+        {"value": 22.5, "timestamp": "2024-09-09T12:09:00Z"},
+        {"value": 23, "timestamp": "2024-09-09T12:10:00Z"}
     ]
 }
+**Permisos**: Se puede añadir usuario y rol en los query parameters para comprobar permisos.
+/resource/temperature?id=user456&role=leader
