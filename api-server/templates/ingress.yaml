@@ -16,13 +16,6 @@ spec:
                 name: api-server-service
                 port:
                   number: 80
-          - path: /resource/
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: api-server-service
-                port:
-                  number: 80
           - path: /access_map
             pathType: ImplementationSpecific
             backend:
