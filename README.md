@@ -4,7 +4,7 @@ Esta API permite gestionar sensores, recursos y permisos de acceso.
 
 ## Endpoints
 
-### 1. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map/add_permission - Permite agregar un nuevo permiso para un usuario, especificando su rol y recursos a los que tiene acceso.
+### 1. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/add_permission - Permite agregar un nuevo permiso para un usuario, especificando su rol y recursos a los que tiene acceso.
 **Método**: POST
 **Body**: JSON
 {
@@ -14,18 +14,18 @@ Esta API permite gestionar sensores, recursos y permisos de acceso.
     "resources": ["/temperature", "/humidity"]
 }
 
-### 2. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map/access_map - Devuelve el mapa de acceso actual con los permisos asignados.
+### 2. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map - Devuelve el mapa de acceso actual con los permisos asignados.
 **Método**: GET
 
-### 3. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map/resource - Devuelve todos los recursos disponibles (sensores).
+### 3. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/resource - Devuelve todos los recursos disponibles (sensores).
 **Método**: GET
 
-### 4. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map/resource/<resource_type> - Devuelve los sensores de un tipo específico (por ejemplo, temperature, humidity, pressure).
+### 4. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/resource/<resource_type> - Devuelve los sensores de un tipo específico (por ejemplo, temperature, humidity, pressure).
 **Método**: GET
 **Permisos**: Se puede añadir usuario y rol en los query parameters para comprobar permisos.
 /resource/temperature?id=user123&role=employee
 
-### 5. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/access_map/resource/<resource_type> - Agregar un nuevo sensor de un tipo específico, junto con sus valores y unidad de medida.
+### 5. http://api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu/resource/<resource_type> - Agregar un nuevo sensor de un tipo específico, junto con sus valores y unidad de medida.
 **Método**: POST
 **Body**: JSON
 {
