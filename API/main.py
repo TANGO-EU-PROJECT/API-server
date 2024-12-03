@@ -142,7 +142,7 @@ def add_resource(resource_type):
     auth = 0  # Suponemos que el acceso no es autorizado al principio
     # Si se proporcionan los parámetros id y role, validamos el acceso
     if user_id and role:
-        if not check_access(user_id, role, "GET", resource_type):
+        if not check_access(user_id, role, "POST", resource_type):
             return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
         auth = 1  # Si pasa la validación, establecemos auth a 1
 
@@ -154,27 +154,27 @@ def add_resource(resource_type):
             return jsonify({'error': 'Request body must be JSON'}), 400
 
         data = request.get_json()
-        sensor_name = data.get('sensor_name')
+        sensor = data.get('sensor')
         measure = data.get('measure')
         unit = data.get('unit')
         values = data.get('values', [])
 
         # Validar campos obligatorios
-        if not sensor_name or not measure or not unit:
-            return jsonify({'error': 'Missing required fields: sensor_name, measure, or unit'}), 400
+        if not sensor or not measure or not unit:
+            return jsonify({'error': 'Missing required fields: sensor, measure, or unit'}), 400
 
         # Verificar que el sensor no exista ya
-        if sensor_name in resources:
-            return jsonify({'error': f'Sensor {sensor_name} already exists'}), 409
+        if sensor in resources:
+            return jsonify({'error': f'Sensor {sensor} already exists'}), 409
 
         # Agregar el nuevo recurso
-        resources[sensor_name] = {
+        resources[sensor] = {
             'measure': measure,
             'unit': unit,
             'values': values
         }
 
-        return jsonify({'response': f'Sensor {sensor_name} added successfully'}), 201
+        return jsonify({'response': f'Sensor {sensor} added successfully'}), 201
     
     # Si no se cumplen las condiciones de autorización, se retorna un error de solicitud incorrecta
     return jsonify({'error': 'Bad request'}), 400

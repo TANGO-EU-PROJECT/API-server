@@ -1,6 +1,6 @@
 apiserver:
   image: harbor.tango.rid-intrasoft.eu/api-server/api
-  imageTag:  R17
+  imageTag:  R21
   pullPolicy: Always
   namespace: ips-testing1
 
