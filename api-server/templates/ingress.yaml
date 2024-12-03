@@ -9,7 +9,28 @@ spec:
     - host: api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu
       http:
         paths:
-          - path: /resource(/|$)(.*)
+          - path: /resource
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-server-service
+                port:
+                  number: 80
+          - path: /resource/
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-server-service
+                port:
+                  number: 80
+          - path: /access_map
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-server-service
+                port:
+                  number: 80
+          - path: /add_permission
             pathType: ImplementationSpecific
             backend:
               service:
