@@ -114,10 +114,13 @@ def get_resource(resource_type):
     user_id = request.args.get('id')
     role = request.args.get('role')
 
+    # Fallar si no se proporcionan los parámetros obligatorios
+    if not user_id or not role:
+        return jsonify({'error': 'Missing required parameters: id and role'}), 400
+
     # Validar permisos
-    if user_id and role:
-        if not check_access(user_id, role, "GET", resource_type):
-            return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
+    if not check_access(user_id, role, "GET", resource_type):
+        return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
 
     # Obtener sensores del tipo solicitado
     sensors = {k: v for k, v in resources.items() if v['measure'] == resource_type}
@@ -127,42 +130,47 @@ def get_resource(resource_type):
     return jsonify({'response': sensors}), 200
 
 
+
 # Endpoint para agregar un recurso
 @app.route('/resource/<resource_type>', methods=['POST'])
 def add_resource(resource_type):
     user_id = request.args.get('id')
     role = request.args.get('role')
 
-    # Validar permisos
-    if user_id and role:
-        if not check_access(user_id, role, "POST", resource_type):
-            return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
+    # Fallar si no se proporcionan los parámetros obligatorios
+    if not user_id or not role:
+        return jsonify({'error': 'Missing required parameters: id and role'}), 400
 
-    # Validar y agregar recurso
+    # Validar permisos
+    if not check_access(user_id, role, "POST", resource_type):
+        return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
+
+    # Verificar que el cuerpo de la solicitud contenga datos válidos
     if not request.is_json:
         return jsonify({'error': 'Request body must be JSON'}), 400
 
     data = request.get_json()
-    sensor_name = data.get('sensor')
-    unit = data.get('unit')
+    sensor_name = data.get('sensor_name')
     measure = data.get('measure')
+    unit = data.get('unit')
     values = data.get('values', [])
 
-    if not sensor_name or not unit or not measure or not isinstance(values, list):
-        return jsonify({'error': 'Missing or invalid required parameters'}), 400
+    # Validar campos obligatorios
+    if not sensor_name or not measure or not unit:
+        return jsonify({'error': 'Missing required fields: sensor_name, measure, or unit'}), 400
 
-    if not re.match("^[a-zA-Z0-9_]+$", sensor_name):
-        return jsonify({'error': 'Invalid sensor name'}), 400
+    # Verificar que el sensor no exista ya
+    if sensor_name in resources:
+        return jsonify({'error': f'Sensor {sensor_name} already exists'}), 409
 
-    if sensor_name not in resources:
-        resources[sensor_name] = {'measure': measure, 'unit': unit, 'values': []}
+    # Agregar el nuevo recurso
+    resources[sensor_name] = {
+        'measure': measure,
+        'unit': unit,
+        'values': values
+    }
 
-    for val in values:
-        value = val.get('value')
-        timestamp = val.get('timestamp', datetime.utcnow().isoformat() + 'Z')
-        resources[sensor_name]['values'].append({'value': value, 'timestamp': timestamp})
-
-    return jsonify({'response': f'Sensor {sensor_name} added successfully!', 'sensor': resources[sensor_name]}), 201
+    return jsonify({'response': f'Sensor {sensor_name} added successfully'}), 201
 
 
 # Ejecutar la app
