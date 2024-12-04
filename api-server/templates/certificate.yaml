@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: api-server-tls-secret
   issuerRef:
-    name: selfsigned-clusterissuer
+    name: letsencrypt-fiware-eks
     kind: ClusterIssuer
   dnsNames:
     - api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu

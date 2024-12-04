@@ -2,9 +2,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: api-server-service-ingress
+  namespace: ips
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: selfsigned-clusterissuer
+    cert-manager.io/cluster-issuer: letsencrypt-fiware-eks
 spec:
   rules:
     - host: api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu
