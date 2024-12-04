@@ -55,8 +55,6 @@ pipeline {
                     sh 'helm install api-server ./api-server --namespace ips-testing1 --values ./api-server/values.yaml'
                     sh 'kubectl get pods -n ${KUBERNETES_NAMESPACE}'
                     sh 'kubectl get ingress -n ${KUBERNETES_NAMESPACE}'
-                    sh 'kubectl describe certificate api-server-service-cert -n ips'
-                    sh 'kubectl get secret api-server-tls-secret -n ips'
                 }
             }
         }
