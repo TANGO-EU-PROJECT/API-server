@@ -4,7 +4,7 @@ metadata:
   name: api-server-service-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: selfsigned-clusterissuer
+    cert-manager.io/cluster-issuer: letsencrypt-fiware-eks
     nginx.ingress.kubernetes.io/force-ssl-redirect: "false" # Desactiva la redirección automática a HTTPS
 spec:
   rules:
