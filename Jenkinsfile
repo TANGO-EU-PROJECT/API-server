@@ -51,7 +51,8 @@ pipeline {
         stage("Deployment") {
             steps {
                 withKubeConfig([credentialsId: 'K8s-config-file', serverUrl: 'https://kubernetes.tango.rid-intrasoft.eu:6443', namespace: 'ips-testing1']) {
-                    sh 'helm upgrade --install api-server ./api-server --namespace ips-testing1 --values ./api-server/values.yaml'
+                    sh 'helm uninstall api-server --namespace ips-testing1'
+                    sh 'helm install api-server ./api-server --namespace ips-testing1 --values ./api-server/values.yaml'
                     sh 'kubectl get pods -n ${KUBERNETES_NAMESPACE}'
                     sh 'kubectl get ingress -n ${KUBERNETES_NAMESPACE}'
                     sh 'kubectl describe certificate api-server-service-cert -n ips'
