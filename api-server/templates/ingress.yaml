@@ -5,6 +5,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: selfsigned-clusterissuer
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false" # Desactiva la redirección automática a HTTPS
 spec:
   rules:
     - host: api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu
