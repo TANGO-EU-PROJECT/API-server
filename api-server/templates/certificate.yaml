@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-server-service-cert
+  namespace: ips
+spec:
+  secretName: api-server-tls-secret
+  issuerRef:
+    name: selfsigned-clusterissuer
+    kind: ClusterIssuer
+  dnsNames:
+    - api-server.testing1.k8s-cluster.tango.rid-intrasoft.eu
