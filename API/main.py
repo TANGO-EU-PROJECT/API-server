@@ -50,8 +50,8 @@ resources = {
 
 # Mapa de acceso (DID, ROLE, ACTION -> Resources)
 access_map = {
-    ("did:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "buyer", "GET"): ["/temperature", "/humidity"],
-    ("did:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "seller", "POST"): ["/temperature", "/humidity", "/pressure"]
+    ("id:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "buyer", "GET"): ["/temperature", "/humidity"],
+    ("id:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "seller", "POST"): ["/temperature", "/humidity", "/pressure"]
 }
 
 # Ruta de bienvenida
@@ -60,11 +60,11 @@ def index():
     return "Bienvenido a la API de recursos!"
 
 # Verificar acceso basado en el mapa
-def check_access(did, role, action, resource):
-    if not did or not role:
-        # Si no hay DID o rol, denegar acceso
+def check_access(id, role, action, resource):
+    if not id or not role:
+        # Si no hay id o rol, denegar acceso
         return False
-    allowed_resources = access_map.get((did, role, action), [])
+    allowed_resources = access_map.get((id, role, action), [])
     return f"/{resource}" in allowed_resources
 
 # Endpoint para agregar un nuevo permiso
@@ -72,13 +72,13 @@ def check_access(did, role, action, resource):
 def add_permission():
     try:
         data = request.json
-        did = data['did']
+        id = data['id']
         role = data['role']
         action = data['action']
         resources = data['resources']
 
         # Crear la nueva clave en el access_map
-        key = (did, role, action)
+        key = (id, role, action)
         if key in access_map:
             # Si la clave ya existe, agregamos los recursos si no están presentes
             access_map[key].extend([r for r in resources if r not in access_map[key]])
@@ -103,19 +103,19 @@ def get_access_map():
 # Endpoint para obtener recursos
 @app.route('/resource/<resource_type>', methods=['GET'])
 def get_resource(resource_type):
-    did = request.args.get('did')
+    id = request.args.get('id')
     role = request.args.get('role')
 
     auth = 0  # Suponemos que el acceso no es autorizado al principio
 
-    # Si se proporcionan los parámetros did y role, validamos el acceso
-    if did and role:
-        if not check_access(did, role, "GET", resource_type):
+    # Si se proporcionan los parámetros id y role, validamos el acceso
+    if id and role:
+        if not check_access(id, role, "GET", resource_type):
             return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
         auth = 1  # Si pasa la validación, establecemos auth a 1
 
-    # Si no se proporciona did ni role, seguimos adelante (sin validación de permisos)
-    if (auth == 1) or (not did and not role):
+    # Si no se proporciona id ni role, seguimos adelante (sin validación de permisos)
+    if (auth == 1) or (not id and not role):
         # Obtener sensores del tipo solicitado
         sensors = {k: v for k, v in resources.items() if v['measure'] == resource_type}
         if not sensors:
@@ -128,18 +128,18 @@ def get_resource(resource_type):
 # Endpoint para agregar un recurso
 @app.route('/resource/<resource_type>', methods=['POST'])
 def add_resource(resource_type):
-    did = request.args.get('did')
+    id = request.args.get('id')
     role = request.args.get('role')
 
     auth = 0  # Suponemos que el acceso no es autorizado al principio
-    # Si se proporcionan los parámetros did y role, validamos el acceso
-    if did and role:
-        if not check_access(did, role, "POST", resource_type):
+    # Si se proporcionan los parámetros id y role, validamos el acceso
+    if id and role:
+        if not check_access(id, role, "POST", resource_type):
             return jsonify({'error': f'Unauthorized access for role {role} on resource {resource_type}'}), 403
         auth = 1  # Si pasa la validación, establecemos auth a 1
 
-    # Si no se proporciona did ni role, seguimos adelante (sin validación de permisos)
-    if (auth == 1) or (not did and not role):
+    # Si no se proporciona id ni role, seguimos adelante (sin validación de permisos)
+    if (auth == 1) or (not id and not role):
         # Verificar que el cuerpo de la solicitud contenga datos válidos
         if not request.is_json:
             return jsonify({'error': 'Request body must be JSON'}), 400
