@@ -50,8 +50,8 @@ resources = {
 
 # Mapa de acceso (DID, ROLE, ACTION -> Resources)
 access_map = {
-    ("id:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "buyer", "GET"): ["/temperature", "/humidity"],
-    ("id:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "seller", "POST"): ["/temperature", "/humidity", "/pressure"]
+    ("did:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "buyer", "GET"): ["/temperature", "/humidity"],
+    ("did:key:z6MkprsfBbGCc3yxTxad9WMoDQ25fzoXN9HyJAkCuFxhrtBd", "seller", "POST"): ["/temperature", "/humidity", "/pressure"]
 }
 
 # Ruta de bienvenida
